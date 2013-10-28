@@ -1,0 +1,8 @@
+name: Holidays
+main: net.arcanerealm.holidays.Holidays
+version: 0.1
+author: Kenny Williams
+website: http://arcanerealm.net
+description: Holidays
+
+depend: [VCore, RemoteEntities]
