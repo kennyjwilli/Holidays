@@ -3,11 +3,14 @@ package net.arcanerealm.holidays;
 * @author Kenny Williams
 */
 
+import info.jeppes.ZoneCore.ZoneConfig;
+import java.io.File;
 import net.arcanerealm.holidays.commands.HolidayBase;
 import net.arcanerealm.holidays.framework.Holiday;
 import net.arcanerealm.holidays.holiday.Halloween;
 import net.arcanerealm.holidays.listeners.PlayerJoin;
 import net.arcanerealm.holidays.listeners.PlayerQuit;
+import net.arcanerealm.holidays.users.HolidayUserManager;
 import net.vectorgaming.vcore.framework.VertexAPI;
 import net.vectorgaming.vcore.framework.VertexPlugin;
 import net.vectorgaming.vcore.framework.commands.CommandManager;
@@ -18,6 +21,7 @@ import org.bukkit.plugin.PluginManager;
 public class Holidays extends VertexPlugin
 {
     HolidaysAPI api;
+    private HolidayUserManager userManager;
 
     @Override
     public void onEnable()
@@ -26,6 +30,7 @@ public class Holidays extends VertexPlugin
         setupCommands();
         setupListeners();
         registerHolidays();
+        userManager = new HolidayUserManager(this,new ZoneConfig(this,new File("plugins/holidays/users.yml")));
     }
 
     @Override
@@ -65,4 +70,10 @@ public class Holidays extends VertexPlugin
     {
         return api;
     }
+
+    public HolidayUserManager getUserManager() {
+        return userManager;
+    }
+    
+    
 }

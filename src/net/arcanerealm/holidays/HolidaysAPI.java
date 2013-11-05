@@ -10,6 +10,7 @@ import net.vectorgaming.vcore.framework.VertexPlugin;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import net.arcanerealm.holidays.users.HolidayUserManager;
 
 public class HolidaysAPI extends VertexAPI
 {
@@ -19,7 +20,11 @@ public class HolidaysAPI extends VertexAPI
     {
         super(plugin);
     }
-
+    
+    public static HolidayUserManager getUserManager(){
+        return ((Holidays)getPlugin()).getUserManager();
+    }
+    
     public static void registerHoliday(Holiday holiday)
     {
         holidays.put(holiday.getName().toLowerCase(), holiday);
