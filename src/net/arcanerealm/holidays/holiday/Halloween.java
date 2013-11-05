@@ -5,14 +5,12 @@ package net.arcanerealm.holidays.holiday;
 
 import net.arcanerealm.holidays.HolidaysAPI;
 import net.arcanerealm.holidays.framework.Holiday;
-import net.minecraft.server.v1_6_R3.Material;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_6_R3.entity.CraftBat;
 import org.bukkit.craftbukkit.v1_6_R3.entity.CraftPlayer;
-import org.bukkit.entity.Bat;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
