@@ -7,9 +7,11 @@ import info.jeppes.ZoneCore.ZoneConfig;
 import java.io.File;
 import net.arcanerealm.holidays.commands.HolidayBase;
 import net.arcanerealm.holidays.framework.Holiday;
+import net.arcanerealm.holidays.holiday.Christmas;
 import net.arcanerealm.holidays.holiday.Halloween;
 import net.arcanerealm.holidays.listeners.PlayerJoin;
 import net.arcanerealm.holidays.listeners.PlayerQuit;
+import net.arcanerealm.holidays.listeners.SnowballListener;
 import net.arcanerealm.holidays.users.HolidayUserManager;
 import net.vectorgaming.vcore.framework.VertexAPI;
 import net.vectorgaming.vcore.framework.VertexPlugin;
@@ -51,12 +53,15 @@ public class Holidays extends VertexPlugin
 
         pm.registerEvents(new PlayerJoin(), this);
         pm.registerEvents(new PlayerQuit(), this);
+        pm.registerEvents(new SnowballListener(), this);
     }
 
     private void registerHolidays()
     {
         Holiday halloween = new Halloween();
         HolidaysAPI.registerHoliday(halloween);
+        Christmas christmas = new Christmas();
+        HolidaysAPI.registerHoliday(christmas);
     }
 
     @Override
