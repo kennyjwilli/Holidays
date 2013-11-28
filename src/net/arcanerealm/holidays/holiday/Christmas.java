@@ -21,6 +21,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
+import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -298,8 +299,16 @@ public class Christmas extends Holiday implements Listener{
     public void equipEntityAsSanta(LivingEntity entity){
         EntityEquipment equipment = entity.getEquipment();
         
-        equipment.setHelmet(getSantaHead());
-        equipment.setHelmetDropChance(0f);
+        boolean useHelmet = true;
+        if(entity instanceof Zombie){
+            if(((Zombie)entity).isBaby()){
+                useHelmet = false;
+            }
+        }
+        if(useHelmet){
+            equipment.setHelmet(getSantaHead());
+            equipment.setHelmetDropChance(0f);
+        }
         
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS,1);
         LeatherArmorMeta bootsMeta = (LeatherArmorMeta)boots.getItemMeta();
