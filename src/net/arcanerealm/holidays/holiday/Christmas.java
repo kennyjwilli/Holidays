@@ -241,7 +241,7 @@ public class Christmas extends Holiday implements Listener{
             if(event.getEntity().getWorld().getPVP()){
                 return;
             }
-            if(Math.random()*5 < 1){
+            if(Math.random()*15 < 1){
                 List<Entity> nearbyEntities = event.getEntity().getNearbyEntities(10, 10, 10);
                 boolean spawn = true;
                 for(Entity entity : nearbyEntities){
