@@ -5,4 +5,5 @@ author: Kenny Williams
 website: http://arcanerealm.net
 description: Holidays
 
-depend: [VCore, RemoteEntities]
+depend: [VCore]
+softdepend: [RemoteEntities]
