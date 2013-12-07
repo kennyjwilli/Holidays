@@ -14,6 +14,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -27,8 +29,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -40,7 +46,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 public class Christmas extends Holiday implements Listener{
 
     private ArrayList<ItemStack> gifts = new ArrayList();
-    private ZoneLocation christmasTreeLocation = new ZoneLocation("spawn_christmas_2013",-942,65,2013);
+    private ZoneLocation christmasTreeLocation = new ZoneLocation("spawn",-942,65,2013);
     private Color[] colors = new Color[]{
         Color.AQUA,
         Color.BLACK,
@@ -68,11 +74,6 @@ public class Christmas extends Holiday implements Listener{
     }
     
     private void initGifts(){
-        for(byte i = 0; i < 16; i++){
-            ItemStack itemStack = new ItemStack(Material.WOOL, 64, i);
-            itemStack.setAmount(64);
-            gifts.add(itemStack);
-        }
         gifts.add(new ItemStack(Material.GOLDEN_APPLE,5));
         gifts.add(new ItemStack(Material.GOLDEN_APPLE,1,(short)1));
         gifts.add(new ItemStack(Material.COOKIE,64));
@@ -87,7 +88,7 @@ public class Christmas extends Holiday implements Listener{
     public static boolean isChristmas(){
         Calendar currentCalendar = new GregorianCalendar();
         int currentDayOfMonth = currentCalendar.get(Calendar.DAY_OF_MONTH);
-        if(currentCalendar.get(Calendar.MONTH) == 10){
+        if(currentCalendar.get(Calendar.MONTH) == 11){
             if(currentDayOfMonth <= 24){
                 return true;
             }
@@ -109,6 +110,9 @@ public class Christmas extends Holiday implements Listener{
     
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent event){
+        if(!isChristmas()){
+            return;
+        }
         if(event.getTo().getWorld().getName().equalsIgnoreCase(christmasTreeLocation.getWorldName())){
             if(christmasTreeLocation.distance(event.getTo()) <= 10){
                 HolidayUser user = HolidaysAPI.getUserManager().getUser(event.getPlayer());
@@ -144,8 +148,40 @@ public class Christmas extends Holiday implements Listener{
 //        }
     }
     
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerLogin(PlayerLoginEvent event){
+        if(!isChristmas()){
+            return;
+        }
+        boolean send = false;
+        final HolidayUser user = HolidaysAPI.getUserManager().getUser(event.getPlayer());
+        if(user.getConfig().contains("christmas.last-gift-recieved")){
+            long lastGiftRecieved = user.getConfig().getLong("christmas.last-gift-recieved");
+            Calendar calendar = new GregorianCalendar();
+            int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+            Calendar calendar2 = new GregorianCalendar();
+            calendar2.setTime(new Date(lastGiftRecieved));
+            int dayOfMonth2 = calendar2.get(Calendar.DAY_OF_MONTH);
+            if(dayOfMonth != dayOfMonth2){
+                send = true;
+            }
+        } else {
+            send = true;
+        }
+        if(send){
+            Bukkit.getScheduler().runTaskLater(HolidaysAPI.getPlugin(), new Runnable(){
+                @Override
+                public void run() {
+                    user.sendMessage(ChatColor.BLUE+"There is a present waiting for you under the christmas tree in spawn!");
+                }
+            },40);
+        }
+    }
     @EventHandler
      public void onBlockForm(EntityBlockFormEvent event){
+        if(!isChristmas()){
+            return;
+        }
         if(event.getEntity().getType() == EntityType.SNOWMAN){
             event.setCancelled(true);
 //            final Location location = event.getBlock().getLocation();
@@ -177,11 +213,15 @@ public class Christmas extends Holiday implements Listener{
     }
 
     public ItemStack getRandomGift(){
-        int n = (int)(Math.random() * (double)(gifts.size() + 5d));
+        int n = (int)(Math.random() * (double)(gifts.size() + 7d));
         if(n < gifts.size()){
             return gifts.get(n);
-        } else {
+        } else if(n < gifts.size()+4) {
             return getRandomFirework();
+        } else {
+            ItemStack itemStack = new ItemStack(Material.WOOL, 64, (short)(Math.random()*16d));
+            itemStack.setAmount(64);
+            return itemStack;
         }
     }
     
@@ -226,7 +266,7 @@ public class Christmas extends Holiday implements Listener{
         }
         fm.setPower((int)(Math.random() * 2d) + 2);
         firework.setItemMeta(fm);
-
+        firework.setAmount(64);
         return firework;
     }
     
@@ -239,6 +279,9 @@ public class Christmas extends Holiday implements Listener{
     public void onCreatureSpawn(CreatureSpawnEvent event){
         if(isChristmas()){
             if(event.getEntity().getWorld().getPVP()){
+                return;
+            }
+            if(event.getEntity().getWorld().getEnvironment() != Environment.NORMAL){
                 return;
             }
             if(Math.random()*15 < 1){
@@ -255,14 +298,21 @@ public class Christmas extends Holiday implements Listener{
                 }
             }
             if(event.getEntityType() == EntityType.ZOMBIE){
-                equipEntityAsSanta(event.getEntity());
+                equipEntityAsSanta(event.getEntity(), event.getSpawnReason() == SpawnReason.SPAWNER);
             }
         }
     }
     
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event){
+        if(!isChristmas()){
+            return;
+        }
         if(event.getEntity().getWorld().getPVP()){
+            return;
+        }
+        if(event.getCause() == DamageCause.MELTING){
+            event.setCancelled(true);
             return;
         }
         if (event instanceof EntityDamageByEntityEvent) {
@@ -271,7 +321,8 @@ public class Christmas extends Holiday implements Listener{
                 if (attacker instanceof Snowball) {
                     if (
                         event.getEntity().getType() != EntityType.PLAYER && 
-                        ((Snowball)attacker).getShooter().getType() == EntityType.SNOWMAN
+                        ((Snowball)attacker).getShooter().getType() == EntityType.SNOWMAN &&
+                        event.getEntity().getType() != EntityType.SNOWMAN
                     ){
                         event.setDamage(4);
 //                        if(event.getEntity() instanceof Creature){
@@ -281,6 +332,21 @@ public class Christmas extends Holiday implements Listener{
                     }
                 }
 
+            }
+        }
+    }
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event){
+        if(event.getEntity() instanceof LivingEntity){
+            LivingEntity entity = (LivingEntity) event.getEntity();
+            if(entity.getKiller() == null){
+                for(ItemStack drop : event.getDrops()){
+                    if(drop.getItemMeta() != null && drop.getItemMeta().getDisplayName() != null){
+                        if(drop.getItemMeta().getDisplayName().endsWith("Magic Snowball")){
+                            event.getDrops().remove(drop);
+                        }
+                    }
+                }
             }
         }
     }
@@ -296,7 +362,7 @@ public class Christmas extends Holiday implements Listener{
 //        }
 //    }
     
-    public void equipEntityAsSanta(LivingEntity entity){
+    public void equipEntityAsSanta(LivingEntity entity, boolean lowerDropChance){
         EntityEquipment equipment = entity.getEquipment();
         
         boolean useHelmet = true;
@@ -329,7 +395,55 @@ public class Christmas extends Holiday implements Listener{
         equipment.setChestplate(chest);
         
         equipment.setItemInHand(getMagicSnowball());
-        equipment.setItemInHandDropChance(0.1f);
+        if(lowerDropChance){
+            equipment.setItemInHandDropChance(0.01f);
+        } else {
+            equipment.setItemInHandDropChance(0.1f);
+        }
+    }
+    
+    public void equipEntityAsElf(LivingEntity entity, boolean lowerDropChance){
+        EntityEquipment equipment = entity.getEquipment();
+        
+        boolean useHelmet = true;
+        if(entity instanceof Zombie){
+            if(((Zombie)entity).isBaby()){
+                useHelmet = false;
+            }
+        }
+        if(useHelmet){
+            ItemStack skull = new ItemStack(Material.SKULL_ITEM,1,(short)3);
+            SkullMeta meta = (SkullMeta) skull.getItemMeta();
+            meta.setOwner("MHF_Villager");
+            skull.setItemMeta(meta);
+            equipment.setHelmet(skull);
+            equipment.setHelmetDropChance(0f);
+        }
+        
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS,1);
+        LeatherArmorMeta bootsMeta = (LeatherArmorMeta)boots.getItemMeta();
+        bootsMeta.setColor(Color.fromBGR(0, 0, 0));
+        boots.setItemMeta(bootsMeta);
+        equipment.setBoots(boots);
+        
+        ItemStack legs = new ItemStack(Material.LEATHER_LEGGINGS,1);
+        LeatherArmorMeta legsMeta = (LeatherArmorMeta)legs.getItemMeta();
+        legsMeta.setColor(Color.fromBGR(0, 255, 0));
+        legs.setItemMeta(legsMeta);
+        equipment.setLeggings(legs);
+        
+        ItemStack chest = new ItemStack(Material.LEATHER_CHESTPLATE,1);
+        LeatherArmorMeta chestMeta = (LeatherArmorMeta)chest.getItemMeta();
+        chestMeta.setColor(Color.fromBGR(0, 255, 0));
+        chest.setItemMeta(chestMeta);
+        equipment.setChestplate(chest);
+        
+        equipment.setItemInHand(getMagicSnowball());
+        if(lowerDropChance){
+            equipment.setItemInHandDropChance(0.01f);
+        } else {
+            equipment.setItemInHandDropChance(0.1f);
+        }
     }
     
     public ItemStack getSantaHead(){
