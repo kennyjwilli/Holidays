@@ -5,18 +5,18 @@ package net.arcanerealm.holidays;
 
 import net.arcanerealm.holidays.framework.Holiday;
 import net.vectorgaming.vcore.framework.VertexAPI;
-import net.vectorgaming.vcore.framework.VertexPlugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import net.arcanerealm.holidays.users.HolidayUserManager;
+import net.vectorgaming.vcore.VCore;
 
 public class HolidaysAPI extends VertexAPI
 {
     private static HashMap<String, Holiday> holidays = new HashMap<>();
 
-    public HolidaysAPI(VertexPlugin plugin)
+    public HolidaysAPI(VCore plugin)
     {
         super(plugin);
     }

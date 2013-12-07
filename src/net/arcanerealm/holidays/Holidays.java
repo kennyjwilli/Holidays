@@ -13,14 +13,14 @@ import net.arcanerealm.holidays.listeners.PlayerJoin;
 import net.arcanerealm.holidays.listeners.PlayerQuit;
 import net.arcanerealm.holidays.listeners.SnowballListener;
 import net.arcanerealm.holidays.users.HolidayUserManager;
+import net.vectorgaming.vcore.VCore;
 import net.vectorgaming.vcore.framework.VertexAPI;
-import net.vectorgaming.vcore.framework.VertexPlugin;
 import net.vectorgaming.vcore.framework.commands.CommandManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
-public class Holidays extends VertexPlugin
+public class Holidays extends VCore
 {
     HolidaysAPI api;
     private HolidayUserManager userManager;
@@ -70,7 +70,6 @@ public class Holidays extends VertexPlugin
         return this;
     }
 
-    @Override
     public VertexAPI getAPI()
     {
         return api;
